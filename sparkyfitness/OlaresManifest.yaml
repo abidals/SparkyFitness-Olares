@@ -1,0 +1,148 @@
+olaresManifest.version: '0.12.0'
+olaresManifest.type: app
+apiVersion: v3
+metadata:
+  name: sparkyfitness
+  appid: sparkyfitness
+  title: SparkyFitness
+  description: Self-hosted family fitness tracker — food, exercise, water, sleep and health data, with an AI assistant and MCP access
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/sparkyfitness.png
+  categories:
+  - Lifestyle
+  version: 0.0.5
+spec:
+  versionName: '1.6.4'
+  developer: CodeWithCJ
+  submitter: abidals
+  website: https://github.com/CodeWithCJ/SparkyFitness
+  sourceCode: https://github.com/CodeWithCJ/SparkyFitness
+  doc: https://codewithcj.github.io/SparkyFitness/
+  license:
+  - text: Source-available, non-commercial (upstream LICENSE)
+    url: https://codewithcj.github.io/SparkyFitness/features/comparison
+  runAsUser: true
+  supportArch:
+  - amd64
+  - arm64
+  accelerator:
+  - mode: cpu
+    requiredCpu: 300m
+    limitedCpu: 1500m
+    requiredMemory: 512Mi
+    limitedMemory: 1600Mi
+    requiredDisk: 100Mi
+    limitedDisk: 10Gi
+  hardware:
+    cpu: {}
+    gpu: {}
+  runAsInternal: false
+  supportClient: {}
+permission:
+  appData: true
+middleware:
+  postgres:
+    username: sparkyfitness
+    databases:
+    - name: sparkyfitness
+entrances:
+- name: sparkyfitness
+  host: sparkyfitness
+  port: 8080
+  title: SparkyFitness
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/sparkyfitness.png
+  authLevel: public
+  invisible: false
+  openMethod: default
+options:
+  appScope: {}
+  # The AI chat streams over SSE and food-image uploads are large — never let the
+  # entrance proxy cap a request at its 15s default. Only 0 disables it.
+  apiTimeout: 0
+  dependencies:
+  - mandatory: false
+    name: olares
+    selfRely: false
+    type: system
+    version: '>=1.12.6-0'
+  oidc: {}
+  resetCookie: {}
+  shared: false
+  upload: {}
+  websocket: {}
+overlayGateway:
+  enable: false
+tailscale: {}
+workloadReplicas:
+  sparkyfitness: 1
+  sparkyfitness-server: 1
+envs:
+- envName: SPARKY_FITNESS_ADMIN_EMAIL
+  required: false
+  applyOnChange: true
+  valueFrom:
+    envName: OLARES_USER_EMAIL
+  description: Owner email allowed into the in-app admin panel. Pre-filled from your Olares account email; the first account you create becomes admin.
+- envName: TZ
+  required: false
+  applyOnChange: true
+  valueFrom:
+    envName: OLARES_USER_TIMEZONE
+  description: Time zone for day boundaries and daily check-ins. Pre-filled from your Olares profile time zone.
+- envName: SPARKY_FITNESS_DISABLE_SIGNUP
+  required: false
+  type: bool
+  default: 'false'
+  editable: true
+  applyOnChange: true
+  description: Master signup blockade — it blocks ALL account creation, including the first account. Leave it false until your accounts exist, then flip it to true and save.
+- envName: SPARKY_FITNESS_LOG_LEVEL
+  required: false
+  type: string
+  default: 'ERROR'
+  editable: true
+  applyOnChange: true
+  description: Server log level — error, warn, info, http or debug.
+- envName: ALLOW_PRIVATE_NETWORK_CORS
+  required: false
+  type: bool
+  default: 'false'
+  editable: true
+  applyOnChange: true
+  description: Allow CORS from private-network origins (only needed if you reach the app over a LAN address instead of its Olares domain).
+- envName: SPARKY_FITNESS_EXTRA_TRUSTED_ORIGINS
+  required: false
+  type: string
+  editable: true
+  applyOnChange: true
+  description: Extra comma-separated trusted CORS origins, in addition to the app's own entrance URL.
+- envName: SMTP_HOST
+  required: false
+  applyOnChange: true
+  valueFrom:
+    envName: OLARES_USER_SMTP_SERVER
+  description: Outbound mail host — inherited from Olares Settings → SMTP (leave empty to keep email disabled).
+- envName: SMTP_PORT
+  required: false
+  applyOnChange: true
+  valueFrom:
+    envName: OLARES_USER_SMTP_PORT
+- envName: SMTP_SECURE
+  required: false
+  applyOnChange: true
+  valueFrom:
+    envName: OLARES_USER_SMTP_SECURE
+- envName: SMTP_USERNAME
+  required: false
+  applyOnChange: true
+  valueFrom:
+    envName: OLARES_USER_SMTP_USERNAME
+- envName: SMTP_PASSWORD
+  required: false
+  applyOnChange: true
+  valueFrom:
+    envName: OLARES_USER_SMTP_PASSWORD
+- envName: SMTP_FROM_ADDRESS
+  required: false
+  applyOnChange: true
+  valueFrom:
+    envName: OLARES_USER_SMTP_FROM_ADDRESS

@@ -1,0 +1,5 @@
+workloads:
+  sparkyfitness:
+    replicaCount: 1
+  sparkyfitness-server:
+    replicaCount: 1

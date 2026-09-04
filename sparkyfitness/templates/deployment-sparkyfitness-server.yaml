@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: sparkyfitness-server
+  name: sparkyfitness-server
+  namespace: '{{ .Release.Namespace }}'
+spec:
+  replicas: {{ (index .Values.workloads "sparkyfitness-server").replicaCount }}
+  # hostPath (userspace) storage + rolling update are incompatible.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      io.kompose.service: sparkyfitness-server
+  template:
+    metadata:
+      labels:
+        io.kompose.service: sparkyfitness-server
+    spec:
+      enableServiceLinks: false
+      # Upstream images ship no USER (they run as root); force the platform uid.
+      securityContext:
+        runAsUser: 1000
+      initContainers:
+      - name: init-permissions
+        image: beclab/aboveos-busybox:1.37.0
+        command:
+        - sh
+        - -c
+        - |
+          for d in /data /data/uploads /data/backup /data/temp_uploads; do
+            mkdir -p "$d" && chown 1000:1000 "$d"
+          done
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - name: app-data
+          mountPath: /data
+      containers:
+      - name: sparkyfitness-server
+        image: codewithcj/sparkyfitness_server:v1.6.4
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3010
+          protocol: TCP
+        env:
+        # --- Database: Olares system middleware. One injected role serves as
+        #     both the migration owner and the app role (upstream's two-role
+        #     split needs CREATEROLE, which a middleware role does not have). ---
+        - name: SPARKY_FITNESS_DB_HOST
+          value: "{{ .Values.postgres.host }}"
+        - name: SPARKY_FITNESS_DB_PORT
+          value: "{{ .Values.postgres.port }}"
+        - name: SPARKY_FITNESS_DB_NAME
+          value: "{{ .Values.postgres.databases.sparkyfitness }}"
+        - name: SPARKY_FITNESS_DB_USER
+          value: "{{ .Values.postgres.username }}"
+        - name: SPARKY_FITNESS_APP_DB_USER
+          value: "{{ .Values.postgres.username }}"
+        - name: SPARKY_FITNESS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sparkyfitness-app
+              key: SPARKY_FITNESS_DB_PASSWORD
+        - name: SPARKY_FITNESS_APP_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sparkyfitness-app
+              key: SPARKY_FITNESS_APP_DB_PASSWORD
+        # --- App secrets: generated once per install, kept across upgrades ---
+        - name: SPARKY_FITNESS_API_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sparkyfitness-app
+              key: SPARKY_FITNESS_API_ENCRYPTION_KEY
+        - name: BETTER_AUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: sparkyfitness-app
+              key: BETTER_AUTH_SECRET
+        # --- Runtime / user settings ---
+        - name: NODE_ENV
+          value: "production"
+        - name: TZ
+          value: "{{ .Values.olaresEnv.TZ }}"
+        - name: SPARKY_FITNESS_SERVER_PORT
+          value: "3010"
+        - name: SPARKY_FITNESS_FRONTEND_URL
+          value: "https://{{ .Values.domain.sparkyfitness }}"
+        - name: SPARKY_FITNESS_ADMIN_EMAIL
+          value: "{{ .Values.olaresEnv.SPARKY_FITNESS_ADMIN_EMAIL }}"
+        - name: SPARKY_FITNESS_DISABLE_SIGNUP
+          value: "{{ .Values.olaresEnv.SPARKY_FITNESS_DISABLE_SIGNUP }}"
+        - name: SPARKY_FITNESS_LOG_LEVEL
+          value: "{{ .Values.olaresEnv.SPARKY_FITNESS_LOG_LEVEL }}"
+        - name: ALLOW_PRIVATE_NETWORK_CORS
+          value: "{{ .Values.olaresEnv.ALLOW_PRIVATE_NETWORK_CORS }}"
+        - name: SPARKY_FITNESS_EXTRA_TRUSTED_ORIGINS
+          value: "{{ .Values.olaresEnv.SPARKY_FITNESS_EXTRA_TRUSTED_ORIGINS }}"
+        # --- SMTP comes from the owner's Olares user settings (optional) ---
+        - name: SPARKY_FITNESS_EMAIL_HOST
+          value: "{{ .Values.olaresEnv.SMTP_HOST }}"
+        - name: SPARKY_FITNESS_EMAIL_PORT
+          value: "{{ .Values.olaresEnv.SMTP_PORT }}"
+        - name: SPARKY_FITNESS_EMAIL_SECURE
+          value: "{{ .Values.olaresEnv.SMTP_SECURE }}"
+        - name: SPARKY_FITNESS_EMAIL_USER
+          value: "{{ .Values.olaresEnv.SMTP_USERNAME }}"
+        - name: SPARKY_FITNESS_EMAIL_FROM
+          value: "{{ .Values.olaresEnv.SMTP_FROM_ADDRESS }}"
+        - name: SPARKY_FITNESS_EMAIL_PASS
+          valueFrom:
+            secretKeyRef:
+              name: sparkyfitness-app
+              key: SPARKY_FITNESS_EMAIL_PASS
+        # --- Storage: userspace appData mounted at /data. All three writable paths the
+        #     server uses are redirected out of the (read-only-for-uid-1000) image dir. ---
+        - name: SPARKY_FITNESS_CUSTOM_UPLOADS_DIRECTORY
+          value: "/data/uploads"
+        - name: SPARKY_FITNESS_CUSTOM_BACKUP_DIRECTORY
+          value: "/data/backup"
+        - name: SPARKY_FITNESS_CUSTOM_TEMP_DIRECTORY
+          value: "/data/temp_uploads"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 384Mi
+          limits:
+            cpu: 800m
+            memory: 1Gi
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3010
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3010
+          initialDelaySeconds: 45
+          periodSeconds: 30
+          failureThreshold: 6
+        volumeMounts:
+        - name: app-data
+          mountPath: /data
+      restartPolicy: Always
+      volumes:
+      - name: app-data
+        hostPath:
+          path: {{ .Values.userspace.appData }}
+          type: DirectoryOrCreate

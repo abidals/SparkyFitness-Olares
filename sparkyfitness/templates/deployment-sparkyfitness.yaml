@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: sparkyfitness
+  name: sparkyfitness
+  namespace: '{{ .Release.Namespace }}'
+spec:
+  replicas: {{ .Values.workloads.sparkyfitness.replicaCount }}
+  selector:
+    matchLabels:
+      io.kompose.service: sparkyfitness
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: sparkyfitness
+    spec:
+      enableServiceLinks: false
+      # The upstream nginx image ships no USER (root); the entrypoint switches to
+      # its non-root mode when uid != 0 — which is also why it listens on 8080.
+      securityContext:
+        runAsUser: 1000
+      initContainers:
+      # nginx (uid 1000, gid 0) can write the image's group-0 runtime dirs, but NOT
+      # /run itself, where this build wants its pid file -> "open() \"/run/nginx.pid\"
+      # failed (13: Permission denied)". Give it a writable /run.
+      - name: init-permissions
+        image: beclab/aboveos-busybox:1.37.0
+        command:
+        - sh
+        - -c
+        - |
+          mkdir -p /run && chown 1000:1000 /run
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - name: nginx-run
+          mountPath: /run
+      containers:
+      - name: sparkyfitness-frontend
+        image: codewithcj/sparkyfitness:v1.6.4
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        env:
+        - name: NGINX_LISTEN_PORT
+          value: "8080"
+        - name: NGINX_RATE_LIMIT
+          value: "5r/s"
+        - name: NGINX_ACCESS_LOG
+          value: /dev/stdout
+        - name: NGINX_ERROR_LOG
+          value: /dev/stderr
+        - name: SPARKY_FITNESS_SERVER_HOST
+          value: sparkyfitness-server
+        - name: SPARKY_FITNESS_SERVER_PORT
+          value: "3010"
+        - name: SPARKY_FITNESS_FRONTEND_URL
+          value: "https://{{ .Values.domain.sparkyfitness }}"
+        resources:
+          requests:
+            cpu: 50m
+            memory: 96Mi
+          limits:
+            cpu: 300m
+            memory: 192Mi
+        volumeMounts:
+        - name: nginx-run
+          mountPath: /run
+      restartPolicy: Always
+      volumes:
+      # EmptyDir (not a userspace hostPath): runtime pid/socket scratch, no data.
+      - name: nginx-run
+        emptyDir: {}
