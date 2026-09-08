@@ -1,6 +1,6 @@
 apiVersion: v2
-appVersion: '1.6.4'
+appVersion: '1.6.5'
 description: SparkyFitness — self-hosted family fitness tracker (food, exercise, water, sleep) with an AI assistant and MCP access
 name: sparkyfitness
 type: application
-version: 0.0.5
+version: 0.0.6

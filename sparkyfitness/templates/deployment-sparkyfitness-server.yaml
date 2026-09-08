@@ -39,7 +39,7 @@ spec:
           mountPath: /data
       containers:
       - name: sparkyfitness-server
-        image: codewithcj/sparkyfitness_server:v1.6.4
+        image: codewithcj/sparkyfitness_server:v1.6.5
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3010

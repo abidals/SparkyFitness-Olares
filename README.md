@@ -2,7 +2,7 @@
 
 Unofficial [Olares](https://olares.com) app package for [SparkyFitness](https://github.com/CodeWithCJ/SparkyFitness), a self-hosted, family-friendly tracker for food, exercise, water, sleep and health data — with an AI assistant and an MCP endpoint.
 
-Upstream app: [`CodeWithCJ/SparkyFitness`](https://github.com/CodeWithCJ/SparkyFitness) — images `codewithcj/sparkyfitness` (nginx frontend) and `codewithcj/sparkyfitness_server` (Node backend), version **1.6.4**, multi-arch `amd64` + `arm64`.
+Upstream app: [`CodeWithCJ/SparkyFitness`](https://github.com/CodeWithCJ/SparkyFitness) — images `codewithcj/sparkyfitness` (nginx frontend) and `codewithcj/sparkyfitness_server` (Node backend), version **1.6.5**, multi-arch `amd64` + `arm64`.
 
 > ⚠️ **Licence first, before anything else:** SparkyFitness is *source-available*, not OSI open source. The upstream licence is free for personal and self-hosted use but **restricts commercial hosting**, and derivative works carry the same terms. See [License](#license).
 
@@ -28,7 +28,7 @@ Upstream app: [`CodeWithCJ/SparkyFitness`](https://github.com/CodeWithCJ/SparkyF
 
 ## Install
 
-1. **Get the chart package** — download `sparkyfitness-0.0.5.tgz` from this repo's [Releases](https://github.com/abidals/SparkyFitness-Olares/releases/latest), or build it yourself:
+1. **Get the chart package** — download `sparkyfitness-0.0.6.tgz` from this repo's [Releases](https://github.com/abidals/SparkyFitness-Olares/releases/latest), or build it yourself:
    ```sh
    git clone https://github.com/abidals/SparkyFitness-Olares && cd SparkyFitness-Olares
    olares-cli chart package ./sparkyfitness -o .
@@ -36,8 +36,8 @@ Upstream app: [`CodeWithCJ/SparkyFitness`](https://github.com/CodeWithCJ/SparkyF
 
 2. **Upload and install** — no required prompts; the admin email, time zone and SMTP settings are pre-filled from your Olares profile:
    ```sh
-   olares-cli market upload ./sparkyfitness-0.0.5.tgz
-   olares-cli market install sparkyfitness -s upload --version 0.0.5 --watch
+   olares-cli market upload ./sparkyfitness-0.0.6.tgz
+   olares-cli market install sparkyfitness -s upload --version 0.0.6 --watch
    ```
 
 3. **Open the app** — find its URL with `olares-cli settings apps get sparkyfitness` (URL column), then create your account. **The first account created becomes the admin.**
@@ -93,7 +93,7 @@ gh release create v<new-version> ./sparkyfitness-<new-version>.tgz --latest
 ```
 sparkyfitness/            # the Olares chart (OlaresManifest.yaml + templates/)
 compose.yml               # upstream docker-compose.prod.yml this chart was ported from
-sparkyfitness-0.0.5.tgz   # pre-built chart package (what `market upload` consumes)
+sparkyfitness-0.0.6.tgz   # pre-built chart package (what `market upload` consumes)
 ```
 
 ## License

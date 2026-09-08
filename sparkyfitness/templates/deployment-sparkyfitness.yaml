@@ -40,7 +40,7 @@ spec:
           mountPath: /run
       containers:
       - name: sparkyfitness-frontend
-        image: codewithcj/sparkyfitness:v1.6.4
+        image: codewithcj/sparkyfitness:v1.6.5
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
