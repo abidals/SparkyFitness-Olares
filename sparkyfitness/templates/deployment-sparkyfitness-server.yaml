@@ -39,7 +39,7 @@ spec:
           mountPath: /data
       containers:
       - name: sparkyfitness-server
-        image: codewithcj/sparkyfitness_server:v1.6.5
+        image: codewithcj/sparkyfitness_server:v1.7.1
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3010
@@ -96,6 +96,8 @@ spec:
           value: "{{ .Values.olaresEnv.SPARKY_FITNESS_LOG_LEVEL }}"
         - name: ALLOW_PRIVATE_NETWORK_CORS
           value: "{{ .Values.olaresEnv.ALLOW_PRIVATE_NETWORK_CORS }}"
+        - name: ALLOW_PRIVATE_NETWORK_FOOD_PROVIDERS
+          value: "{{ .Values.olaresEnv.ALLOW_PRIVATE_NETWORK_FOOD_PROVIDERS }}"
         - name: SPARKY_FITNESS_EXTRA_TRUSTED_ORIGINS
           value: "{{ .Values.olaresEnv.SPARKY_FITNESS_EXTRA_TRUSTED_ORIGINS }}"
         # --- SMTP comes from the owner's Olares user settings (optional) ---

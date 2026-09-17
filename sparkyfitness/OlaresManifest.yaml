@@ -9,9 +9,9 @@ metadata:
   icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/sparkyfitness.png
   categories:
   - Lifestyle
-  version: 0.0.6
+  version: 0.0.7
 spec:
-  versionName: '1.6.5'
+  versionName: '1.7.1'
   developer: CodeWithCJ
   submitter: abidals
   website: https://github.com/CodeWithCJ/SparkyFitness
@@ -109,6 +109,13 @@ envs:
   editable: true
   applyOnChange: true
   description: Allow CORS from private-network origins (only needed if you reach the app over a LAN address instead of its Olares domain).
+- envName: ALLOW_PRIVATE_NETWORK_FOOD_PROVIDERS
+  required: false
+  type: bool
+  default: 'false'
+  editable: true
+  applyOnChange: true
+  description: Let non-admin users sync with food providers (Tandoor, Mealie, Norish) hosted on private-network domains. Required since v1.7.0 for personal/self-hosted provider URLs.
 - envName: SPARKY_FITNESS_EXTRA_TRUSTED_ORIGINS
   required: false
   type: string
